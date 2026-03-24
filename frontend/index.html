@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Expense Tracker</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+body{
+  background: linear-gradient(135deg,#1e293b,#0f172a);
+  color:white;
+  font-family: Arial, sans-serif;
+}
+input, select{
+  color: black;
+}
+</style>
+</head>
+
+<body>
+
+<header class="p-6 text-center bg-slate-900 shadow">
+  <h1 class="text-3xl font-bold">Expense Tracker System</h1>
+  <p class="text-sm text-gray-400">Track your expenses efficiently</p>
+</header>
+
+<main class="max-w-5xl mx-auto p-6">
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 text-center">
+
+  <div class="bg-slate-800 p-4 rounded shadow">
+    <h3 class="text-lg">Total Income</h3>
+    <p id="income" class="text-green-400 text-xl font-semibold">₹0</p>
+  </div>
+
+  <div class="bg-slate-800 p-4 rounded shadow">
+    <h3 class="text-lg">Total Expense</h3>
+    <p id="expense" class="text-red-400 text-xl font-semibold">₹0</p>
+  </div>
+
+  <div class="bg-slate-800 p-4 rounded shadow">
+    <h3 class="text-lg">Balance</h3>
+    <p id="balance" class="text-blue-400 text-xl font-semibold">₹0</p>
+  </div>
+
+</div>
+
+<div class="bg-slate-800 p-6 rounded shadow mb-8">
+  <h2 class="text-xl mb-4 font-semibold">Add Transaction</h2>
+
+  <form id="transactionForm" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+
+    <input 
+      type="text" 
+      id="text" 
+      placeholder="Description"
+      class="p-2 rounded text-black"
+      required
+    >
+
+    <input 
+      type="number" 
+      id="amount" 
+      placeholder="Amount"
+      class="p-2 rounded text-black"
+      required
+    >
+
+    <select id="type" class="p-2 rounded text-black">
+      <option value="income">Income</option>
+      <option value="expense">Expense</option>
+    </select>
+
+    <button 
+      type="submit"
+      class="bg-blue-600 hover:bg-blue-700 p-2 rounded text-white font-semibold"
+    >
+      Add
+    </button>
+
+  </form>
+</div>
+
+<div class="bg-slate-800 p-6 rounded shadow">
+  <h2 class="text-xl mb-4 font-semibold">Transaction History</h2>
+
+  <ul id="list" class="space-y-3">
+  </ul>
+
+</div>
+</main>
+
+
+<script src="script.js"></script>
+
+</body>
+</html>
