@@ -15,7 +15,7 @@ function addExpense() {
     return;
   }
 
-  fetch("http://localhost:5000/add-expense", {
+  fetch("/add-expense", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -33,7 +33,7 @@ function addExpense() {
 }
 
 function loadExpenses() {
-  fetch("http://localhost:5000/expenses")
+  fetch("/expenses")
     .then(res => res.json())
     .then(data => {
       const list = document.getElementById("list");
