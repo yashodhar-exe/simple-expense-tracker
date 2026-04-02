@@ -1,8 +1,8 @@
 const express = require("express");
-const mysql = require("mysql2");
 const cors = require("cors");
 const path = require("path");
 require("dotenv").config();
+const { createClient } = require("@supabase/supabase-js");
 
 const app = express();
 app.use(cors());
@@ -11,50 +11,69 @@ app.use(express.json());
 // Serve static frontend files
 app.use(express.static(path.join(__dirname, "../frontend")));
 
-const db = mysql.createPool({
-  host: process.env.DB_HOST || "localhost",
-  user: process.env.DB_USER || "root",
-  password: process.env.DB_PASSWORD || "root",
-  database: process.env.DB_NAME || "expense_tracker",
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0
-});
+// Initialize Supabase client using the keys from your .env file
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_KEY || process.env.SUPABASE_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
-// Database Pool automatically connects and manages connections in the background
+app.post("/add-expense", async (req, res) => {
+  const { text, amount, type, deviceId } = req.body;
+  const numAmount = Number(amount);
 
-app.post("/add-expense", (req, res) => {
-  console.log("REQ BODY:", req.body);  
-
-  const { text, amount, type } = req.body;
-
-  if (!text || !amount || !type) {
-    console.log("VALIDATION FAILED");
-    return res.status(400).json({ error: "Missing fields" });
+  if (!text || isNaN(numAmount) || numAmount <= 0 || !type || !deviceId) {
+    return res.status(400).json({ error: "Invalid or missing fields. Ensure amount is a positive number." });
   }
 
-  const sql =
-    "INSERT INTO expenses (title, amount, category, date) VALUES (?, ?, ?, CURDATE())";
+  // Insert standard row into the 'expenses' table
+  const { data, error } = await supabase
+    .from("expenses")
+    .insert([
+      { title: text, amount: numAmount, category: type, date: new Date().toISOString(), device_id: deviceId }
+    ]);
 
-  db.query(sql, [text, Number(amount), type], (err, result) => {
-    if (err) {
-      console.error("MYSQL ERROR:", err);  
-      return res.status(500).json({ error: "Insert failed" });
-    }
+  if (error) {
+    console.error("SUPABASE ERROR:", error);
+    return res.status(500).json({ error: "Insert failed" });
+  }
 
-    console.log("INSERT RESULT:", result); 
-    res.json({ message: "Expense added successfully" });
-  });
+  res.json({ message: "Expense added successfully" });
 });
 
-app.get("/expenses", (req, res) => {
-  db.query("SELECT * FROM expenses", (err, results) => {
-    if (err) {
-      console.error(err);
-      return res.status(500).json({ error: "Fetch failed" });
-    }
-    res.json(results);
-  });
+app.get("/expenses", async (req, res) => {
+  const deviceId = req.query.deviceId;
+  if (!deviceId) return res.status(400).json({ error: "Missing deviceId" });
+
+  const { data, error } = await supabase
+    .from("expenses")
+    .select("*")
+    .eq("device_id", deviceId);
+
+  if (error) {
+    console.error("SUPABASE ERROR:", error);
+    return res.status(500).json({ error: "Fetch failed" });
+  }
+
+  res.json(data);
+});
+
+app.delete("/expenses/:id", async (req, res) => {
+  const { id } = req.params;
+  const { deviceId } = req.query;
+
+  if (!deviceId) return res.status(400).json({ error: "Missing deviceId" });
+
+  const { data, error } = await supabase
+    .from("expenses")
+    .delete()
+    .eq("id", id)
+    .eq("device_id", deviceId);
+
+  if (error) {
+    console.error("SUPABASE ERROR:", error);
+    return res.status(500).json({ error: "Delete failed" });
+  }
+
+  res.json({ message: "Expense deleted successfully" });
 });
 
 const PORT = process.env.PORT || 5000;

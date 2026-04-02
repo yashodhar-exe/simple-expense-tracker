@@ -3,97 +3,204 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Expense Tracker</title>
+<title>Minimal Expense Tracker</title>
 
+<!-- Tailwind CSS -->
 <script src="https://cdn.tailwindcss.com"></script>
 
+<!-- Import Map for React and Framer so the module works without a bundler -->
+<script type="importmap">
+  {
+    "imports": {
+      "react": "https://esm.sh/react@18",
+      "react/jsx-runtime": "https://esm.sh/react@18/jsx-runtime",
+      "react-dom/client": "https://esm.sh/react-dom@18/client",
+      "framer-motion": "https://esm.sh/framer-motion@11",
+      "framer": "data:text/javascript,export const addPropertyControls = () => {}; export const ControlType = {};"
+    }
+  }
+</script>
+
 <style>
-body{
-  background: linear-gradient(135deg,#1e293b,#0f172a);
-  color:white;
-  font-family: Arial, sans-serif;
-}
-input, select{
-  color: black;
-}
+  /* Import a clean sans-serif font */
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
+
+  body {
+    font-family: 'Inter', sans-serif;
+    color: #111;
+    background-color: #fafafa;
+    /* Framer cursor overrides default cursor, but keeping this as backup */
+    cursor: none; 
+  }
+  
+  /* Make sure links handle hover for the custom cursor */
+  a, button, input, select {
+    position: relative;
+    z-index: 20;
+  }
 </style>
 </head>
 
-<body>
+<body class="relative min-h-screen overflow-x-hidden">
 
-<header class="p-6 text-center bg-slate-900 shadow">
-  <h1 class="text-3xl font-bold">Expense Tracker System</h1>
-  <p class="text-sm text-gray-400">Track your expenses efficiently</p>
-</header>
+  <!-- React root for the Framer Cursor -->
+  <div id="cursor-root"></div>
 
-<main class="max-w-5xl mx-auto p-6">
-
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 text-center">
-
-  <div class="bg-slate-800 p-4 rounded shadow">
-    <h3 class="text-lg">Total Income</h3>
-    <p id="income" class="text-green-400 text-xl font-semibold">₹0</p>
+  <!-- Background Vertical Lines (Minimalist aesthetic) -->
+  <div class="fixed inset-0 pointer-events-none flex justify-between px-8 md:px-24 z-0">
+    <div class="w-px h-full bg-gray-200"></div>
+    <div class="w-px h-full bg-gray-200"></div>
+    <div class="w-px h-full bg-gray-200"></div>
+    <div class="w-px h-full bg-gray-200"></div>
+    <div class="w-px h-full bg-gray-200"></div>
   </div>
 
-  <div class="bg-slate-800 p-4 rounded shadow">
-    <h3 class="text-lg">Total Expense</h3>
-    <p id="expense" class="text-red-400 text-xl font-semibold">₹0</p>
+  <div class="relative z-10 w-full max-w-7xl mx-auto px-8 md:px-24 pt-12 pb-24">
+    
+
+
+    <!-- Hero Title -->
+    <div class="mb-24 relative">
+      <h1 class="text-6xl md:text-8xl font-extrabold tracking-tighter text-black flex items-baseline">
+        Expense Tracker<span class="w-5 h-5 md:w-8 md:h-8 bg-red-600 inline-block ml-3"></span>
+      </h1>
+    </div>
+
+    <!-- Main Application Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-16">
+      
+      <!-- Left Column: Add Transaction -->
+      <div class="lg:col-span-5">
+        <h2 class="text-2xl font-bold mb-8">Add Transaction</h2>
+        
+        <form id="transactionForm" class="space-y-10">
+          <div>
+            <input 
+              type="text" 
+              id="text" 
+              placeholder="Description"
+              class="w-full border-b border-gray-300 py-3 text-lg focus:outline-none focus:border-red-600 bg-transparent transition duration-300 placeholder-gray-300"
+              required
+            >
+          </div>
+          
+          <div class="flex space-x-8">
+            <input 
+              type="number" 
+              id="amount" 
+              placeholder="Amount"
+              class="w-1/2 border-b border-gray-300 py-3 text-lg focus:outline-none focus:border-red-600 bg-transparent transition duration-300 placeholder-gray-300"
+              required
+            >
+            <!-- Custom Minimal Dropdown instead of native <select> -->
+            <div class="relative w-1/2" id="custom-dropdown">
+              <input type="hidden" id="type" value="income">
+              <button type="button" id="dropdown-btn" class="w-full border-b border-gray-300 py-3 text-lg text-left focus:outline-none focus:border-red-600 bg-transparent transition duration-300 text-gray-500 hover:text-black font-light cursor-pointer flex justify-between items-center group">
+                <span id="dropdown-text">Income</span>
+                <svg class="w-4 h-4 ml-2 text-gray-400 group-hover:text-black transition duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 9l-7 7-7-7"></path></svg>
+              </button>
+              <div id="dropdown-menu" class="absolute left-0 top-full w-full bg-white border border-gray-200 mt-1 hidden z-50">
+                <div class="flex flex-col">
+                  <div class="px-4 py-4 hover:bg-gray-50 hover:text-red-600 cursor-pointer text-lg font-light text-gray-800 transition duration-200" data-value="income">Income</div>
+                  <div class="px-4 py-4 hover:bg-gray-50 hover:text-red-600 cursor-pointer text-lg font-light text-gray-800 transition duration-200 border-t border-gray-100" data-value="expense">Expense</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <button 
+            type="submit"
+            class="text-xs tracking-widest uppercase font-bold text-white bg-black px-10 py-5 hover:bg-red-600 transition duration-500 w-full md:w-auto mt-4"
+          >
+            Add entry
+          </button>
+        </form>
+      </div>
+
+      <!-- Right Column: Dashboard & History -->
+      <div class="lg:col-span-7 lg:pl-16">
+        
+        <div class="grid grid-cols-3 gap-8 mb-16 border-b border-gray-200 pb-12">
+          <div>
+            <h3 class="text-xs tracking-widest uppercase text-gray-400 mb-4">Total Income</h3>
+            <p id="income" class="text-4xl font-light text-black">₹0</p>
+          </div>
+          <div>
+            <h3 class="text-xs tracking-widest uppercase text-gray-400 mb-4">Total Expense</h3>
+            <p id="expense" class="text-4xl font-light text-red-600">₹0</p>
+          </div>
+          <div>
+            <h3 class="text-xs tracking-widest uppercase text-gray-400 mb-4">Balance</h3>
+            <p id="balance" class="text-4xl font-bold text-black border-l-4 border-red-600 pl-4">₹0</p>
+          </div>
+        </div>
+
+        <div>
+          <h2 class="text-2xl font-bold mb-8">Transaction History</h2>
+          <ul id="list" class="space-y-2">
+            <!-- Populated via JS -->
+          </ul>
+        </div>
+        
+      </div>
+      
+    </div>
   </div>
 
-  <div class="bg-slate-800 p-4 rounded shadow">
-    <h3 class="text-lg">Balance</h3>
-    <p id="balance" class="text-blue-400 text-xl font-semibold">₹0</p>
-  </div>
+  <script src="script.js"></script>
+  
+  <!-- Mount Framer Custom Cursor using React -->
+  <script type="module">
+    import React from 'react';
+    import { createRoot } from 'react-dom/client';
+    import CircleCursor from 'https://framerusercontent.com/modules/XQeTsLzmLPvQvFJmNxa6/weXuzi1q3k4xfXMDxSIu/Circle_Cursor.js';
 
-</div>
+    const rootElement = document.getElementById('cursor-root');
+    const root = createRoot(rootElement);
+    
+    // We pass props just like the defaults, occasionally tweaked for the minimal aesthetic
+    root.render(
+      React.createElement(CircleCursor, {
+        dotSize: 6,
+        dotColor: "#000000",
+        ringSize: 40,
+        ringColor: "#000000",
+        ringBorderWidth: 1.5,
+        hoverScale: 1.5,
+        clickScale: 0.8,
+        animationDuration: 300,
+        blendMode: "normal", 
+        opacity: 1,
+        hideOnMobile: true
+      })
+    );
+  </script>
+  <script>
+    // Custom Dropdown UI Logic
+    const dropdownBtn = document.getElementById('dropdown-btn');
+    const dropdownMenu = document.getElementById('dropdown-menu');
+    const dropdownText = document.getElementById('dropdown-text');
+    const typeInput = document.getElementById('type');
+    
+    dropdownBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      dropdownMenu.classList.toggle('hidden');
+    });
 
-<div class="bg-slate-800 p-6 rounded shadow mb-8">
-  <h2 class="text-xl mb-4 font-semibold">Add Transaction</h2>
+    document.querySelectorAll('#dropdown-menu [data-value]').forEach(option => {
+      option.addEventListener('click', () => {
+        typeInput.value = option.dataset.value;
+        dropdownText.innerText = option.innerText;
+        dropdownMenu.classList.add('hidden');
+      });
+    });
 
-  <form id="transactionForm" class="grid grid-cols-1 md:grid-cols-4 gap-4">
-
-    <input 
-      type="text" 
-      id="text" 
-      placeholder="Description"
-      class="p-2 rounded text-black"
-      required
-    >
-
-    <input 
-      type="number" 
-      id="amount" 
-      placeholder="Amount"
-      class="p-2 rounded text-black"
-      required
-    >
-
-    <select id="type" class="p-2 rounded text-black">
-      <option value="income">Income</option>
-      <option value="expense">Expense</option>
-    </select>
-
-    <button 
-      type="submit"
-      class="bg-blue-600 hover:bg-blue-700 p-2 rounded text-white font-semibold"
-    >
-      Add
-    </button>
-
-  </form>
-</div>
-
-<div class="bg-slate-800 p-6 rounded shadow">
-  <h2 class="text-xl mb-4 font-semibold">Transaction History</h2>
-
-  <ul id="list" class="space-y-3">
-  </ul>
-
-</div>
-</main>
-
-
-<script src="script.js"></script>
-
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!document.getElementById('custom-dropdown').contains(e.target)) {
+        dropdownMenu.classList.add('hidden');
+      }
+    });
+  </script>
 </body>
 </html>
